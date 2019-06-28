@@ -1,6 +1,6 @@
 # RxpsG
 Processing tool for X-ray Photoelectron Spectroscopy Data
-
+---------------------------------------------------------
 
 RxpsG installation instructions
 1) Install R and Rstudio on your computer
