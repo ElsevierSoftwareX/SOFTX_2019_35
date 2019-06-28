@@ -1,6 +1,7 @@
 # RxpsG
 Processing tool for X-ray Photoelectron Spectroscopy Data
 
+
 RxpsG installation instructions
 1) Install R and Rstudio on your computer
 2) Run Rstudio and open the Tools menu -> Global Options
