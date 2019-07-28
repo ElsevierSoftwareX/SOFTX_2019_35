@@ -195,7 +195,7 @@ XPSVBTop <- function() {
 		       points(point.coords, col="orange", cex=3, lwd=2, pch=3)  #plots the VB top
           } else {
 		       plot(Object[[coreline]])
-		       points(point.coords, col=3, cex=1.2, lwd=2, pch=3)         #plots the point where to add the component
+		       points(point.coords, col=3, cex=1.2, lwd=2, pch=3)       #plots the point where to add the component
 	       }
 	    } else if ((tab1 == 2) && (tab2==3) ){ ### tab VB Fit, Hill Sigmoid Fit
           if (svalue(plotFit) == "residual" && hasFit(Object[[coreline]])) {
@@ -222,22 +222,22 @@ XPSVBTop <- function() {
 
 
   LoadCoreLine<-function(h, ...){
-     Object_name <- get("activeFName", envir=.GlobalEnv)  #nome dell'XPSSample
-     Object <<- get(Object_name, envir=.GlobalEnv)  #Carico l'XPSSample dal HlobalEnv con le eventuali modifiche fatte in Constraints
+     Object_name <- get("activeFName", envir=.GlobalEnv)
+     Object <<- get(Object_name, envir=.GlobalEnv)  #load the XPSSample from the .Global Environment
      ComponentList<<-names(slot(Object[[coreline]],"Components"))
      if (length(ComponentList)==0) {
          gmessage("ATTENTION NO FIT FOUND: change coreline please!" , title = "WARNING",  icon = "warning")
          return()
      }
-     replot()   #riplotta spettro e marker componente selezionata
+     replot()   #replot spectrum of the selected component
   }
 
 
 
   set.coreline <- function(h, ...) {
-    CL <- svalue(core.lines)
+    CL <- svalue(Core.Lines)
     CL <- unlist(strsplit(CL, "\\."))   #drops the NUMBER. before the CoreLine name
-    coreline <<-as.integer(CL[1])
+    coreline <<- as.integer(CL[1])
 
     if ( length(Object[[coreline]]@Components)>0 ) {
 	    gmessage(msg="Analysis already present on this Coreline!", title = "WARNING: Analysis Done",  icon = "warning")
@@ -324,7 +324,7 @@ XPSVBTop <- function() {
 
 
   update.outputArea <- function(...) {
-     coreline <- svalue(core.lines)
+     coreline <- svalue(Core.Lines)
      coreline<-unlist(strsplit(coreline, "\\."))   #drops the NUMBER. before the CoreLine name
      coreline<-as.integer(coreline[1])
   }
@@ -656,10 +656,11 @@ XPSVBTop <- function() {
   Object<-get(activeFName,envir=.GlobalEnv)  #this is the XPS Sample
   Object_name<-get("activeFName", envir = .GlobalEnv) #XPSSample name
   ObjectBKP<-NULL   #CoreLine bkp to enable undo operation
+  FNameList <- XPSFNameList() #list of XPSSamples
   SpectList <- XPSSpectList(activeFName) #list of XPSSample Corelines
   point.coords <- list(x=NULL, y=NULL)
   compIndx <- 1
-  coreline<-0
+  coreline <- 0
   plot_win <- as.numeric(get("XPSSettings", envir=.GlobalEnv)$General[4]) #the plot window dimension
   plot_parusr <- NA # conversion units
   plot_parplt <- NA # conversion units
@@ -682,13 +683,32 @@ XPSVBTop <- function() {
 
   ## Core lines
   MainGroup <- ggroup(expand = FALSE, horizontal = FALSE, spacing = 5, container = VBGroup)
-  CoreFrame <- gframe(text = " Core lines ", container = MainGroup)
-  core.lines <- gcombobox(c("0.All spectra", SpectList), selected=1, handler = set.coreline, container = CoreFrame)
+
+  SelectFrame <- gframe(text = " XPS Sample and Core line Selection ",horizontal = TRUE, container = MainGroup)
+  XPS.Sample <- gcombobox(FNameList, selected=-1, editable=FALSE, handler=function(h,...){
+                                 activeFName<-svalue(XPS.Sample)
+                                 Object <<- get(activeFName, envir=.GlobalEnv)
+                                 Object_name <<- activeFName
+                                 SpectList <<- XPSSpectList(activeFName)
+                                 delete(SelectFrame, Core.Lines)
+                                 Core.Lines <<- gcombobox(c("0.All spectra", SpectList), selected=1, handler = set.coreline, container = SelectFrame)
+                                 coreline <<- 0
+                                 VBbkgOK<<-FALSE
+                                 VBlimOK<<-FALSE
+                                 BType<<-"Shirley"
+                                 reset.baseline()
+                                 enabled(T2group1)<<-FALSE
+                                 enabled(OK_btn2)<<-FALSE
+                                 replot()
+                       }, container = SelectFrame)
+  svalue(XPS.Sample)<-activeFName
+
+  Core.Lines <- gcombobox(c("0.All spectra", SpectList), selected=1, handler = set.coreline, container = SelectFrame)
 
 
 #===== Notebook=======================================================
   nbMain <- gnotebook(container = MainGroup, expand = FALSE)
-  size(nbMain) <- c(400, 380)
+  size(nbMain) <- c(400, 430)
 
 #----- TAB1: Baseline -----
   T1group1 <- ggroup(label = "Baseline", horizontal=FALSE, container = nbMain)
@@ -803,18 +823,19 @@ XPSVBTop <- function() {
                            }, container = T22group1 )
   glabel("                           ", container=T22group1)
   Hlp_btn21 <- gbutton("?", expand=FALSE, handler = function(h, ...){
-                              txt<-paste("First select the desired component lineshape (Gaussian is suggested)\n",
-                                       "Click with the left mouse button in the position where to add the component\n",
-                                       "Press ADD FIT COMPONENT to add the fit component\n",
-                                       "Press DELETE FIT COMPONENT to delete a fit component\n",
-                                       "Press EDIT FIT PARAMETERS to introduce constraints on fitting parameters\n",
-                                       "Add the components needed to model the VB in the defined region near to the Fermi edge\n",
-                                       "Press the FIT button to make the fit which should correctly reproduce the VB\n",
-                                       "  (essentially the fit is utilized to deal with a noise free curve)\n",
+                              txt<-paste("The idea is to use the fit of the descending tail of the VB to \n",
+                                       "get rid from noise and obtain a better estimate the VBtop.\n",
+                                       "First select the desired component lineshape (Gaussian is suggested)\n",
+                                       "Click with the left mouse button in the position to add the component\n",
+                                       "Press ADD FIT COMPONENT to add a fit component;\n",
+                                       "Press DELETE FIT COMPONENT to delete a fit component;\n",
+                                       "Press RESET FIT to restart the procedure.\n",
+                                       "Add as many components as needed to model the VB in the defined region\n",
+                                       "Press the FIT button to make the fit which must correctly reproduce the VB tail\n",
                                        "  otherwise press RESET FIT to restart the fitting procedure\n",
                                        "Pressing the ESTIMATE VB TOP button, a predefined treshold based on the VB \n",
                                        "  integral intensity, is the utilized to estimate the VB top position \n",
-                                       "Pressing the RESET ALL button one resets all the analysis and restarts from very beginning")
+                                       "Pressing the RESET ALL button one resets the whole analysis and restarts from very beginning")
                               gmessage(msg=txt,icon="info")
                            }, container = T22group1 )
   tkconfigure(Hlp_btn21$widget, width=5)
@@ -885,7 +906,7 @@ XPSVBTop <- function() {
   T23group1  <- ggroup( horizontal=TRUE, container = T23Frame1)
   glabel("Left Mouse Butt. to Set Sigmoid Max, Flex Point, Min   ", container=T23group1)
   Hlp_btn21 <- gbutton("?", expand=FALSE, handler = function(h, ...){
-                              txt<-paste("In this case a Hill Sigmoid is utilized to fit the descending tail of the VB\n",
+                              txt<-paste("Selecting this option, a Hill Sigmoid is utilized to fit the descending tail of the VB\n",
                                        "Three points are needed to define the Sigmoid: the Sigmoid maximum M (max of the\n",
                                        "  VB in the selected region near to the Fermi edge, the sigmoid flex point FP in \n",
                                        "  the middle of the descending tail and the sigmoid minimum m (background level).\n",

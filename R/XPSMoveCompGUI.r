@@ -4,7 +4,7 @@
 #'Function to modify component position and intensity in a fit
 #'
 #'Provides a userfriendly interface change position and intensity of each
-#'individual fitting component of a selected XPSCoreline. Changes are saved in the 
+#'individual fitting component of a selected XPSCoreline. Changes are saved in the
 #'.GlobalEnv main software memory
 #'
 #'
@@ -24,8 +24,7 @@
 XPSMoveComp <- function(XPSSample, Indx, hscale) {
 
 LoadCoreLine<-function(){
-    activeFName <- get("activeFName", envir=.GlobalEnv)  #get XPSSample name
-    XPSSample <<- get(activeFName, envir=.GlobalEnv)     #load the XPSSample data from main memory
+    XPSSample <<- get(ActiveFName, envir=.GlobalEnv)     #load the XPSSample data from main memory
     Indx <<- get("activeSpectIndx", envir=.GlobalEnv)    #get active Spectrum index
     Object<<-XPSSample[[Indx]]
     Xlimits<<-range(Object@RegionToFit$x)
@@ -305,8 +304,8 @@ LoadCoreLine<-function(){
 
 
 # --- Varables definition ---
-     activeFName<-get("activeFName", envir=.GlobalEnv)   #XPS data name
-     XPSSample<-get(activeFName, envir=.GlobalEnv)       #load XPSdata values from main memory
+     ActiveFName<-get("activeFName", envir=.GlobalEnv)   #XPS data name
+     XPSSample<-get(ActiveFName, envir=.GlobalEnv)       #load XPSdata values from main memory
      SpectName <- get("activeSpectName", envir=.GlobalEnv)
      Object<-XPSSample[[Indx]]
      ComponentList<-names(slot(Object,"Components"))
@@ -396,9 +395,7 @@ LoadCoreLine<-function(){
                                CLgroup <- ggroup(label="", horizontal=FALSE, container=CLmainwin)
 
                                CLframe <-gframe(text="SELECT THE CORELINE", spacing=5, container=CLgroup)
-                               activeFName<-get("activeFName", envir=.GlobalEnv)
-                               Indx<-get("activeSpectIndx", envir=.GlobalEnv)
-                               SpectList<-XPSSpectList(activeFName)
+                               SpectList<-XPSSpectList(ActiveFName)
                                CLobj <- gradio(SpectList, selected=Indx, editable=FALSE, handler=function(h,...){
                                     XPSComponent<-svalue(CLobj)
                                     XPSComponent<-unlist(strsplit(XPSComponent, "\\."))   #drop "NUMber." in component name
@@ -407,7 +404,7 @@ LoadCoreLine<-function(){
                                     assign("activeSpectName", SpectName,envir=.GlobalEnv) #set activeSpectName == last selected spectrum
                                     assign("activeSpectIndx", Indx,envir=.GlobalEnv) #set the activeIndex == last selected spectrum
                                     LoadCoreLine()
-                                    XPSSample<-get(activeFName, envir=.GlobalEnv)
+                                    XPSSample<-get(ActiveFName, envir=.GlobalEnv)
                                     XPSSample[[Indx]]
                                     plot(XPSSample[[Indx]])
                                     dispose(CLmainwin)
@@ -423,9 +420,9 @@ LoadCoreLine<-function(){
                                Estep<-abs(Object@RegionToFit[[1]][1]-Object@RegionToFit[[1]][2])
                                Xindx<-which(Object@RegionToFit[[1]]>xx-Estep/2 & Object@RegionToFit[[1]]<xx+Estep/2)
                                yy<-yy+Object@Baseline$y[Xindx]  #spectral intensity + Baseline at point xx
-                               coords[1] <<- xx
+                               coords[1] <<- xx #coords of marker of the first fit component
                                coords[2] <<- yy
-                               Object <<- sortComponents(Object)                               
+                               Object <<- sortComponents(Object)
                                refresh<<-FALSE  #now plot also the component marker
                                replot(Object)
                            }, container = SelectGroup)
@@ -487,18 +484,17 @@ LoadCoreLine<-function(){
                           }, container = SelectGroup)
 
      RSTbutton<-gbutton("RESET PLOT", handler = function(h, ...) {
-                             SetZoom<<-FALSE
-                             refresh<<-FALSE
-  	                          point.index<<-1
-  	                          reset.plot()
+                               SetZoom<<-FALSE
+                               refresh<<-FALSE
+  	                            point.index<<-1
+  	                            reset.plot()
                          }, container = SelectGroup)
 
      gbutton("    SAVE      ", handler=function(h,...){
 #    With button SAVE the Component parameters are updated and are now available for FiTConstraints
-                              Indx <- get("activeSpectIndx", envir=.GlobalEnv)
-                               activeFName <- get("activeFName", envir=.GlobalEnv)
+                               Indx <- get("activeSpectIndx", envir=.GlobalEnv)
                                XPSSample[[Indx]]<<-Object
-                               assign(activeFName, XPSSample, envir = .GlobalEnv)
+                               assign(ActiveFName, XPSSample, envir = .GlobalEnv)
                                plot(XPSSample[[Indx]])
                                XPSSaveRetrieveBkp("save")
                            }, container = SelectGroup)
@@ -508,9 +504,8 @@ LoadCoreLine<-function(){
                            }, container = SelectGroup)
 
      gbutton("    EXIT      ", handler=function(h,...){
-#    MoveComponent does not store variable values in MyEnv it is possible to exit  maintaining variable values in FiTConstraints
-                              do.before.close()
-                              XPSSaveRetrieveBkp("save")
+                               do.before.close()
+                               XPSSaveRetrieveBkp("save")
                            }, container = SelectGroup)
 
      StatusBar <- gstatusbar("status", container = MCWindow)
@@ -523,8 +518,6 @@ LoadCoreLine<-function(){
      add(Plotgroup, img)
      tkbind(img, "<Button-1>", LBmousedown)   #left mouse button
      tkbind(img, "<Button-3>", RBmousedown)   #right mouse button
-#     tkbind(img, "<B1-Motion>", LBdragmouse)
-#     tkbind(img, "<ButtonRelease-1>", LBmouseup)
      tkconfigure(img, cursor = "crosshair")
 
      enabled(CCLbutton)<-TRUE

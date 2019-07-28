@@ -477,8 +477,8 @@ XPSprocess <- function(Object, Object_name = as.character(substitute(Object)), T
   coords <- NULL # for printing mouse coordinates on the plot
   Xlimits <- NULL
   Ylimits <- NULL
-  SpectList <- XPSSpectList(Object_name) #list of XPSSample Corelines
   FNameList <- XPSFNameList() #list of XPSSamples
+  SpectList <- XPSSpectList(Object_name) #list of XPSSample Corelines
   coreline <- 0
   deg <- 1 #by default the baseline polynom degree = 1
   Wgt <- 0.3 #LinearPolynomial weigth in LP.Shirley
@@ -507,19 +507,19 @@ XPSprocess <- function(Object, Object_name = as.character(substitute(Object)), T
   ## Interactive graph window
   GraphGroup <- ggroup(container = MainGroup)
 
-  Pgroup2 <- gframe(text = " XPS Sample and Core line Selection ",horizontal = TRUE, container = Pgroup1)
+  Pframe1 <- gframe(text = " XPS Sample and Core line Selection ",horizontal = TRUE, container = Pgroup1)
   XPS.Sample <- gcombobox(FNameList, selected=-1, editable=FALSE, handler=function(h,...){
                                  activeFName<-svalue(XPS.Sample)
                                  Object<<-get(activeFName, envir=.GlobalEnv)
                                  SpectList<<-XPSSpectList(activeFName)
-                                 delete(Pgroup2, Core.Lines)
-                                 Core.Lines <<- gcombobox(c("0.All spectra", SpectList), selected=1, expand = FALSE, handler = set.coreline, container = Pgroup2)
+                                 delete(Pframe1, Core.Lines)
+                                 Core.Lines <<- gcombobox(c("0.All spectra", SpectList), selected=1, expand = FALSE, handler = set.coreline, container = Pframe1)
                                  coreline <<- 0
                                  replot()
-                       }, container = Pgroup2)
+                       }, container = Pframe1)
   svalue(XPS.Sample)<-activeFName
 
-  Core.Lines <- gcombobox(c("0.All spectra", SpectList), selected=1, expand = FALSE, handler = set.coreline, container = Pgroup2)
+  Core.Lines <- gcombobox(c("0.All spectra", SpectList), selected=1, expand = FALSE, handler = set.coreline, container = Pframe1)
 
 
 #----- Notebook -----------------------------
@@ -905,7 +905,7 @@ XPSprocess <- function(Object, Object_name = as.character(substitute(Object)), T
   #==>To have a correct corrispondence between mouse position and mouse coordinates transforming
   #positions mapped in tkrplot() in user coordinates (see my.coords() function) the vertical dimension of the
   #TK window must ALWAYS exceed that of the notebook i.e. no borders around the TK window must be present. 
-  #VS = 1.3 is the minimum scale factor value for the TK window to achieve this condition. 
+  #VS = 1.3 is the minimum scale factor value for the TK window to achieve this condition.
   #The TKwin parameter set in Preferences() ranges form 1 to 2.5 and allows increase HS and VS scale factors.
   #For TKwin = 1 HS and VS assume the minimum value = 1.3 . When TKwin is changed in Preferences(), TKwin-1 is 
   #the way to obtain changes of 0.1 to apply to HS and VS to increase/decrease the TK window by a reasonable amounts.

@@ -60,12 +60,23 @@ import.ascii <- function() {
               Xidx<-as.numeric(svalue(ColX))
               Yidx<-as.numeric(svalue(ColY))
               DF <- update_output()
+              LL <- length(DF[[Xidx]])
+              if (svalue(reverseX) && DF[[Xidx]][1] < DF[[Xidx]][LL]) { #reverse X axis selected but X is ascending ordered
+                 answ <- gconfirm(msg="X is in ascending order. Do you want to reverse X axis? ", title="CONFIRM REVERSE AXIS", AICON="WARNING")
+                 if (answ == TRUE ){
+                    DF[[Xidx]] <- rev(DF[[Xidx]]) #reverse X in descending order
+                    DF[[Yidx]] <- rev(DF[[Yidx]]) #reverse X in descending order
+                 } else {
+                    svalue(reverseX) <- FALSE
+                    svalue(NOreverseX) <- TRUE
+                 }
+              }
 #	           FName	<- get(activeFName, envir = .GlobalEnv)
 	           LL<-length(XPSSample)+1
  	           mynewcoreline <- new("XPSCoreLine",
 				              .Data = list(x = DF[[Xidx]], y = DF[[Yidx]]),
 				              units = c(svalue(unitX), svalue(unitY)),
-				              Flags = c(svalue(reverseX), TRUE, TRUE),
+				              Flags = c(svalue(reverseX), TRUE, FALSE, FALSE),
 				              Symbol= svalue(CLname)
               )
 	           CLnames <- names(XPSSample)

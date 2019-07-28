@@ -38,8 +38,8 @@ XPSConstraints <- function(){
            "link" = {
               if (parameter=="sigma") {
 #Attention: first all links have to be saved in SigmaCtrl
-#then when pressing the button SAVE setlinks() calls LinkCtrl() to control all links on sigma
-#and then calls XPSconstrain() to set the links and save informarion in the XPSSample
+#then when pressing the button SAVE calls setlinks() and LinkCtrl() to control all links on sigma
+#and then XPSconstrain() is executed to set the links and save informarion in the XPSSample
                  SigmaCtrl$FitComp<<-c(1:NComp)
                  SigmaCtrl$CompLnkd[Nc1]<<-Nc1 #save the linked component
                  SigmaCtrl$ToComp[Nc1]<<-Nc2   #save the linked-TO component
@@ -56,7 +56,7 @@ XPSConstraints <- function(){
                  return()
               }
               FName[[SpectIndx]]<-XPSconstrain(FName[[SpectIndx]],Nc1,action="remove",variable=NULL,value=NULL,expr=NULL)
-              assign(activeFName, FName, envir=.GlobalEnv)
+              assign(ActiveFName, FName, envir=.GlobalEnv)
            },
            "edit" = {
               # do nothing !
@@ -155,17 +155,8 @@ XPSConstraints <- function(){
              SigmaCtrl$FitComp<-na.omit(SigmaCtrl$FitComp)
              SigmaCtrl$Expression<-na.omit(SigmaCtrl$Expression)
              cat("\n ==> Link Ctrl Done!")
-             break    #interrompe while
+             break    #break while loop
          }
-
-#cat("\n ----------\n")
-#print(SigmaCtrl)
-#cat("\n ----------\n")
-#print(LinkedComp)
-#cat("\n ----------\n")
-#print(WrongLnks)
-
-
 #Now control elements of LinkedComp which are linked to a FitComp which is are in turn linked to anothed FitComponent
          for(ii in 1:NWrng){
              for(jj in 1:NLnks){
@@ -259,10 +250,11 @@ XPSConstraints <- function(){
        gmessage("No data present: please load and XPS Sample", title="XPS SAMPLES MISSING", icon="error")
        return()
    }
-   FName<-get(activeFName,envir=.GlobalEnv)
+   ActiveFName <- activeFName #Save actual activeFName to save data in the correct XPSSample (activeFName could change)
+   FName<-get(ActiveFName,envir=.GlobalEnv)
    SpectIndx<-get("activeSpectIndx", envir=.GlobalEnv)
    SpectName<-get("activeSpectName", envir=.GlobalEnv)
-   SpectList<-XPSSpectList(activeFName)
+   SpectList<-XPSSpectList(ActiveFName)
    NComp<-length(FName[[SpectIndx]]@Components)
 
    FitComp1<-names(FName[[SpectIndx]]@Components)
@@ -527,7 +519,7 @@ XPSConstraints <- function(){
                           SpectName<<-XPSComponent[2]
                           assign("activeSpectName", SpectName,envir=.GlobalEnv) #set the active XPSSample be the lasr loaded file
                           assign("activeSpectIndx", SpectIndx,envir=.GlobalEnv) #set the active spectrum index
-                          FName<<-get(activeFName,envir=.GlobalEnv)
+                          FName<<-get(ActiveFName,envir=.GlobalEnv)
                           FitComp1<<-names(FName[[SpectIndx]]@Components)
                           NComp<<-length(FName[[SpectIndx]]@Components)
                           plot(FName[[SpectIndx]])
@@ -588,7 +580,7 @@ XPSConstraints <- function(){
                              SetLinks()                        #first all the links have to be set then they can be controlled and set!!!
                           }
                           SpectName<<-names(FName)[SpectIndx]  #name of the active CoreLine
-                          assign(activeFName, FName, envir=.GlobalEnv)
+                          assign(ActiveFName, FName, envir=.GlobalEnv)
                           assign("activeSpectName", SpectName, envir=.GlobalEnv)
                           assign("activeSpectIndx", SpectIndx, envir=.GlobalEnv)
                           Saved<<-TRUE
@@ -597,7 +589,7 @@ XPSConstraints <- function(){
                      },container=Bframe)
 
       gbutton(" RE-LOAD DATA ", handler=function(h,...){
-                          FName<<-get(activeFName, envir=.GlobalEnv)
+                          FName<<-get(ActiveFName, envir=.GlobalEnv)
                           Saved<<-FALSE
                           plot(FName[[SpectIndx]])
                      },container=Bframe)

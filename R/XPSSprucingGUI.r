@@ -161,7 +161,7 @@ do.editRegion <- function(h, ...){
             delete(gframe23, label23)
             XPSgdf<-gdf(items=DataTable, container=gframe23)
             add(gframe23, XPSgdf)
-            size(XPSgdf)<-c(300,350)
+            size(XPSgdf)<-c(200,180)
             addHandlerChanged(XPSgdf, handler=function(h,...){ #addHandlerChanged scarica il dataframe modificato in NewFirParam che e' salvato al di fuori di saveFitParam attraverso la <<-
                      DataTable <<- h$obj[]
             })
@@ -185,7 +185,7 @@ do.editRegion <- function(h, ...){
 
 do.before.close <- function(...) {
 	 assign(activeFName, Object, envir = .GlobalEnv)
-    dispose(window)
+    dispose(SPwin)
     plot(Object)
     XPSSaveRetrieveBkp("save")
   }
@@ -215,18 +215,19 @@ do.before.close <- function(...) {
   parplt <- NA
 
 #====== Widget definition =======
-  window <- gwindow("XPS extract GUI", visible = FALSE)
-  group <- ggroup(container = window, horizontal = TRUE)
-
+  SPwin <- gwindow("XPS SPRUCING GUI", expand=TRUE, visible = FALSE)
+#  size(SPwin) <- c(1000, 800)
+  MainGroup <- ggroup(horizontal = TRUE, container = SPwin)
+  SPlayout <- glayout(homogeneous=FALSE, spacing=3, container=MainGroup)
   ## Core lines
-  mainGroup <- ggroup(container = group, expand = FALSE, horizontal = FALSE, spacing = 5)
-  add(group, mainGroup)
+  SPlayout[1, 1] <- OptGroup <- ggroup(horizontal = FALSE, expand=TRUE, spacing = 5, container = SPlayout)
+
+  gframe20 <- gframe(text = " Help ", container = OptGroup)
+  HelpLab <- glabel("Set the region edges with the cursors and press Select", container=gframe20)
+  font(HelpLab)<-list(family="sans",size=12)
 
 
-  gframe20 <- gframe(text = " Help ", container = mainGroup)
-  glabel(" Set the region edges with the cursors", container=gframe20)
-
-  gframe22 <- gframe(text = " Action ", container = mainGroup, horizontal = FALSE)
+  gframe22 <- gframe(text = " Select Data ", container = OptGroup, horizontal = FALSE)
   gbutton(" SELECT REGION ", container = gframe22, handler = function(h, ...){
               OldCoords <<- Object[[coreline]]@Boundaries
               SelReg <<- SelReg+1
@@ -250,49 +251,51 @@ do.before.close <- function(...) {
               replot()
          } )
 
-  gbutton(" EDIT REGION ", container = gframe22, handler = function(h, ...){
+  gbutton(" EDIT REGION ", handler = function(h, ...){
               do.editRegion()
-  	      } )
+  	      }, container = gframe22 )
 
-  gbutton(" UNDO ", container = gframe22, handler = function(h, ...) {
+  gbutton(" UNDO ", handler = function(h, ...) {
   	           undo.plot()
-  	      } )
+  	      }, container = gframe22 )
 
-  gbutton("RESET BOUNDARIES", container = gframe22, handler = function(h, ...) {
+  gbutton("RESET BOUNDARIES", handler = function(h, ...) {
   	           reset.boundaries()
-  	      } )
+  	      }, container = gframe22 )
 
-  gframe23 <- gframe(text = " Sprucing ", horizontal=FALSE, container = mainGroup)
-  label23<-glabel(" Data to correct:  ", container=gframe20)
+  gframe23 <- gframe(text = " Sprucing ", horizontal=FALSE, container = OptGroup)
+  label23<-glabel(" Data to correct:  \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n", container=gframe23)
 
   ## CLOSE button
-  gseparator(container = mainGroup) # separator
-  addSpring(mainGroup)
-  gseparator(container = mainGroup)
+  addSpring(OptGroup)
+  gseparator(container = OptGroup)
 
-  gbutton("Save", container = mainGroup, expand=FALSE, handler = function(h, ...){
+  gbutton("Save", container = OptGroup, handler = function(h, ...){
 	           assign(activeFName, Object, envir = .GlobalEnv)
   	           reset.boundaries()
   	           XPSSaveRetrieveBkp("save")
          } )
 
 
-  gbutton("Save & Close", container = mainGroup, expand=FALSE, handler = do.before.close  )
+  gbutton("Save & Close", handler = do.before.close, container = OptGroup )
 
   ## status bar
-  statbar <- gstatusbar("status", container = window)
+  statbar <- gstatusbar("status", container = SPwin)
 
 
 #====== PLOT SECTION =======
-  img <- tkrplot(getToolkitWidget(group), fun = draw.plot, hscale=plot_win, vscale=plot_win)
-  add(group, img)
+  SPlayout[1,2] <- img <- tkrplot(getToolkitWidget(SPlayout), fun = draw.plot, hscale=plot_win, vscale=plot_win)
+#  img <- tkrplot(getToolkitWidget(MainGroup), fun = draw.plot, hscale=plot_win, vscale=plot_win)
+#  add(MainGroup, img)
+  addSpring(MainGroup)
+
   ## interactivity
 #  tkbind(img, "<Button-1>", mousedown)
   tkbind(img, "<B1-Motion>", dragmouse)
   tkbind(img, "<ButtonRelease-1>", mouseup)
   tkconfigure(img, cursor = "crosshair")
 
-  visible(window) <- TRUE
+  visible(SPwin) <- TRUE
 
 #====== Markers at Coreline extremes =======
 
