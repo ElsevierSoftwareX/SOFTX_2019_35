@@ -288,6 +288,7 @@ XPSProcessCoreLine<-function(){
                                   gmessage(msg="Please select the destination file please!" , title = "DESTINATION FILE SELECTION",  icon = "warning")
                                } else {
                                   SourceFile<-get(SourceFile, envir=.GlobalEnv)
+                                  DestSpectList<-XPSSpectList(DestFile)
                                   DestFName <<- get(DestFile, envir=.GlobalEnv)
                                   SourceCoreline<-unlist(strsplit(SourceCoreline, "\\."))
                                   SpectIndx<-as.integer(SourceCoreline[1])
@@ -303,7 +304,7 @@ XPSProcessCoreLine<-function(){
                                      txt<-glabel(text=msg, container=groupCL)
                                      font(txt)<-list(family="sans",size=12)
                                      CoreLineList <- XPSSpectList(svalue(DestFileName))
-                                     selectCL<-gcombobox(CoreLineList[destIndx], selected=-1, editable=FALSE, handler=function(h,...) {
+                                     selectCL<-gcombobox(DestSpectList[destIndx], selected=-1, editable=FALSE, handler=function(h,...) {
                                                         CoreLine <- svalue(selectCL)
                                                         CoreLine <- unlist(strsplit(CoreLine, "\\."))   #drop "NUMBER." at beginning of coreLine name
                                                         destIndx<<-as.numeric(CoreLine[1])
@@ -379,6 +380,7 @@ XPSProcessCoreLine<-function(){
                                   gmessage(msg="Please select the destination file please!" , title = "DESTINATION FILE SELECTION",  icon = "warning")
                                } else {
                                   SourceFile<-get(SourceFile, envir=.GlobalEnv)
+                                  DestSpectList<-XPSSpectList(DestFile)
                                   DestFName <<- get(DestFile, envir=.GlobalEnv)
                                   SourceCoreline<-unlist(strsplit(SourceCoreline, "\\."))   #split string at char "."
                                   SpectName<-SourceCoreline[2]
@@ -397,8 +399,10 @@ XPSProcessCoreLine<-function(){
                                         msg<-paste(" Found ", N.CL," ",SpectName, "corelines.\n Please select your coreline \n to add Baseline and Fit")
                                         txt<-glabel(text=msg, container=groupCL)
                                         font(txt)<-list(family="sans",size=14)
-                                        selectCL<-gcombobox(DestFName@names[destIndx], selected=-1, editable=FALSE, handler=function(h,...) {
-                                                           destIndx<<-as.numeric(svalue(selectCL))
+                                        selectCL<-gcombobox(DestSpectList[destIndx], selected=-1, editable=FALSE, handler=function(h,...) {
+                                                           CoreLine <- svalue(selectCL)
+                                                           CoreLine <- unlist(strsplit(CoreLine, "\\."))   #drop "NUMBER." at beginning of coreLine name
+                                                           destIndx<<-as.numeric(CoreLine[1])
                                                            svalue(infoWin)<-""
                                                            dispose(winCL)
                                                   }, container=groupCL)
@@ -904,7 +908,7 @@ XPSProcessCoreLine<-function(){
 
 
       layoutT2[4,1] <- MathFrame4 <- gframe("DIFFERENTIATE", horizontal=FALSE, spacing=3, container=layoutT2)
-      DiffButt <- gbutton("DIFFERENTIATE", handler=function(h, ...){
+      DiffButt <- gbutton("DIFFERENTIATE CORELINE1", handler=function(h, ...){
                                    svalue(infoWin)<-""
                                    SourceFile<-svalue(DestFileName)<-svalue(SourceFile11)
                                    CoreLine1<-svalue(CoreLine11)
@@ -1022,6 +1026,40 @@ XPSProcessCoreLine<-function(){
                                       }
                                    }
                              }, container=MathFrame44)
+
+      layoutT2[5,1] <- MathFrame5 <- gframe("NORMALIZE", horizontal=FALSE, spacing=3, container=layoutT2)
+      DiffButt <- gbutton("NORMALIZE CORELINE1", handler=function(h, ...){
+                                   svalue(infoWin)<-""
+                                   SourceFile<-svalue(DestFileName)<-svalue(SourceFile11)
+                                   CoreLine1<-svalue(CoreLine11)
+                                   SourceFile<-get(SourceFile, envir=.GlobalEnv)
+                                   CoreLine1<-unlist(strsplit(CoreLine1, "\\."))   #tolgo il "NUMERO." all'inizio del nome coreline
+                                   SpectIndx<-as.integer(CoreLine1[1])
+                                   SpectName<-CoreLine1[2]
+	                                maxY <- max(SourceFile[[SpectIndx]]@.Data[[2]])
+	                                minY <- min(SourceFile[[SpectIndx]]@.Data[[2]])
+	                                SourceFile[[SpectIndx]]@.Data[[2]] <- (SourceFile[[SpectIndx]]@.Data[[2]]-minY)/(maxY-minY)
+                                   if(length(SourceFile[[SpectIndx]]@RegionToFit) > 0){
+                                      SourceFile[[SpectIndx]]@RegionToFit$y <- (SourceFile[[SpectIndx]]@RegionToFit$y-minY)/(maxY-minY)
+                                   }
+                                   if(length(SourceFile[[SpectIndx]]@Baseline) > 0){
+                                      SourceFile[[SpectIndx]]@Baseline$y <- (SourceFile[[SpectIndx]]@Baseline$y-minY)/(maxY-minY)
+                                   }
+                                   if(LL <- length(SourceFile[[SpectIndx]]@Components) > 0){
+                                      for(ii in 1:LL){
+                                         SourceFile[[SpectIndx]]@Components[[ii]]$ycoor <- (SourceFile[[SpectIndx]]@Components[[ii]]$ycoor-minY)/(maxY-minY)
+                                      }
+                                   }
+                                   plot(SourceFile[[SpectIndx]])
+                                   DestFName <<- SourceFile
+                                   activeSpectIndx <<- SpectIndx
+                                   activeSpectName <<- SpectName
+                                   enabled(SaveSpect)<-TRUE
+                                   enabled(SaveNewSpect)<-TRUE
+                                   enabled(SaveAndExit)<-TRUE
+                                   prefix <<- ""
+                                   svalue(infoWin)<- paste(CoreLine1[2], " normalized", sep="")
+                             }, container=MathFrame5)
 
 
       layoutT2[6,1] <- MathFrame6<-gframe("SUBTRACT THE BASELINE", horizontal=FALSE, spacing=3, container=layoutT2)
