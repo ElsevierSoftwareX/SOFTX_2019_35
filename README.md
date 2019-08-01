@@ -11,12 +11,12 @@ RxpsG installation instructions
 6) Use install_github("GSperanza/RxpsG")
 
 Manual Installation:
-1) dowload the RxpsG_xx.xx.tar.gz package. Exit the unzipping procedure if it starts automatically.
-2) control in the Dowloads folder the RxpsG_xx.xx.tar.gz package is present (it could be the .gz extension is lacking do not worry).
+1) Click on the RxpsG_xx.xx.tar.gz package and download. Exit the unzipping procedure if it starts automatically.
+2) Control in the Dowloads folder the RxpsG_xx.xx.tar.gz package is present (it could be the .gz extension is lacking do not worry).
 3) Run RStudio
-4) install all the RxpsG dependencies using:
+4) Install all the RxpsG dependencies using:
    install.packages(pkgs=c("baseline", "digest", "FME", "gWidgets2 (>= 1.0-7)", "gWidgets2tcltk",
                     "latticeExtra", "memoise", "minpack.lm", "NORMT3", "signal", "sm", "SparseM",
                     "tkrplot", "wavelets"))
 5) Under RStudio open the Tools menu -> Install Packages -> Package Archive File ( *.tar.gz )
-6) install RxpsG browsing the downloaded Rxpsg.xx.xx.tar.gz file 
+6) Install RxpsG browsing the downloaded Rxpsg.xx.xx.tar.gz file 
